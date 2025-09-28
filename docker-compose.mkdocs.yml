@@ -1,0 +1,12 @@
+services:
+  mkdocs:
+      image: docs_template_mkdocs
+      container_name: docs_template_mkdocs
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+      volumes:
+        - ./:/docs:z   # mount your MkDocs repo folder
+      ports:
+        - "8030:8000"
+      command: serve -a 0.0.0.0:8000

@@ -1,0 +1,198 @@
+# ─── Example Showing All Task Features ────────────────────────────────────────────────
+# setup:
+#   desc: "⚙️ Setup environment: install dependencies, generate config"
+#   deps:
+#     - init:dev
+#   prompt:
+#     - "This will install tools and dependencies. Continue? (y/N)"
+#   preconditions:
+#     - sh: '[ -f ./configs/example.conf ]'
+#       msg: "Missing configs/example.conf — please copy from example.conf"
+#   cmds:
+#     - echo "Installing dependencies..."
+#     - echo "Generating configuration files..."
+#   env:
+#     SETUP_MODE: "auto"
+#   vars:
+#     PROJECT_NAME: "{{.PROJECT_NAME}}"
+
+
+# ─── Initialized Tasks ────────────────────────────────────────────────────────────────
+# init:dev:
+#   desc: "Initialize local/dev environment specifics"
+#   internal: true
+#   cmds:
+#     - echo "Running init:dev task for ENV={{.ENV}}"
+#   platforms: [linux, darwin]
+
+
+# ─── Example Task with Inputs, Status Checks and Directory ────────────────────────────
+# run-task:
+#   desc: "Run a task with an input parameter"
+#   dir: terraform/environments/dev
+#   requires:
+#     vars:
+#       - task_name
+#   cmds:
+#     - echo "Running {{.task_name}}"
+#   status:
+#     - 'test -f output/{{.task_name}}.done'
+
+# ─── Global Configuration ───────────────────────────────────────────────────────
+version: "3"
+output: prefixed
+dotenv:
+  - .env
+  - .env.local
+
+env:
+  ENV: '{{.ENV | default "dev"}}'
+  DEBUG: '{{.DEBUG | default "false"}}'
+
+vars:
+  PROJECT_NAME: '{{.PROJECT_NAME | default "my-project"}}'
+  TIMESTAMP:
+    sh: date '+%Y%m%d%H%M%S'
+  DOCS_COMPOSE_FILE: docker-compose.mkdocs.yml
+  MKDOCS_PORT: 0.0.0.0:8030
+
+includes:
+  common:
+    taskfile: ./Taskfile.gitflow.yml
+    flatten: true
+
+
+# ─── Core Tasks ────────────────────────────────────────────────────────────────
+tasks:
+  default:
+    desc: "List all tasks"
+    cmds:
+      - task --list-all
+
+  setup:
+    desc: "Setup environment: install dependencies, generate config etc."
+
+
+# ─── Environment Management ────────────────────────────────────────────────────
+  dev:
+    desc: "Provision and start local development environment"
+
+  prod:
+    desc: "Provision and deploy to production"
+
+
+# ─── Misc ────────────────────────────────────────────────────
+  info:
+    desc: "URLs to visit"
+    cmds:
+      - echo "Prometheus -> {{.PROM_URL}}"
+      - echo "Grafana -> {{.GRAF_URL}}"
+      - echo "App -> {{.APP_URL}}"
+
+  status:
+    desc: "Check if everything is running"
+
+  versions:
+    desc: "List current deployed versions"
+    cmds:
+      - uv run mike list
+
+
+# ─── System Management ─────────────────────────────────────────────────────────
+  ports:
+    desc: "List ports in use"
+    cmds:
+      - ss -tunl
+
+
+# ─── Documentation ─────────────────────────────────────────────────────────────
+  docs:
+    desc: "Serve docs locally"
+    cmds:
+      - uv run mkdocs serve --clean -a {{.MKDOCS_PORT}}
+
+  docs-docker:
+    desc: "Serve docs locally with docker"
+    cmds:
+      - docker compose -f {{.DOCS_COMPOSE_FILE}} up
+
+
+
+# ─── Cleanup Tasks ─────────────────────────────────────────────────────────────
+  cleanup-zone:
+    desc: "Cleans up all Zone.Identifier files"
+    cmds:
+      - find . -type f -name "*Zone.Identifier*" -delete
+
+  cleanup-dev:
+    desc: "Cleanup development resources only"
+    cmds:
+      - docker compose -f {{.DOCS_COMPOSE_FILE}} down
+
+  cleanup-prod:
+    desc: "Cleanup production resources only"
+
+  cleanup-all:
+    desc: "Cleanup dev and prod in one swoop"
+    cmds:
+      - task: cleanup-dev
+      - task: cleanup-prod
+      - task: cleanup-zone
+
+
+
+# ─── Assets and Compression ────────────────────────────────────────────────────
+  mkdir-assets:
+    desc: Create the assets/ directory if it doesn't exist
+    cmds:
+      - cmd: mkdir -p assets
+        silent: true
+        platforms: [linux, darwin]
+      - cmd: powershell -NoProfile -Command "New-Item -ItemType Directory -Force assets | Out-Null"
+        silent: true
+        platforms: [windows]
+
+  compress:
+    desc: Compress a video to assets/demo-video-small.mp4 (pass video=....mp4)
+    deps: [mkdir-assets]
+    requires:
+      vars: [video]
+    vars:
+      crf: "{{.crf | default 28}}"
+      preset: '{{.preset | default "veryfast"}}'
+    cmds:
+      - >
+        ffmpeg -i "{{.video}}"
+        -vf "scale=1280:-2,fps=24"
+        -c:v libx264 -crf {{.crf}} -preset {{.preset}}
+        -movflags +faststart
+        -c:a aac -b:a 96k
+        assets/demo-video-small.mp4
+        -y
+    sources:
+      - "{{.video}}"
+    generates:
+      - "assets/demo-video-small.mp4"
+
+  compress-gif:
+    desc: Compress a GIF to assets/demo-video-small.gif (pass gif=....gif)
+    deps: [mkdir-assets]
+    requires:
+      vars: [gif]
+    vars:
+      fps: "{{.fps | default 8}}"
+      colors: "{{.colors | default 64}}"
+    cmds:
+      - >
+        ffmpeg -y -i "{{.gif}}"
+        -vf "fps={{.fps}},scale=iw:-1:flags=lanczos,palettegen=max_colors={{.colors}}"
+        assets/palette.png
+      - >
+        ffmpeg -y -i "{{.gif}}" -i assets/palette.png
+        -lavfi "fps={{.fps}},scale=iw:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5"
+        assets/demo-video-small.gif
+      - rm -f assets/palette.png
+    sources:
+      - "{{.gif}}"
+    generates:
+      - "assets/demo-video-small.gif"

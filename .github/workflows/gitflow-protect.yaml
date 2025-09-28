@@ -1,0 +1,128 @@
+name: GitFlow Branch Protection Setup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  protect-branches:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_PAT }}
+      GH_REPO: ${{ github.repository }}
+
+    steps:
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Create or update 'Main' ruleset
+        run: |
+          RULE_NAME="Main Branch Protection"
+          PAYLOAD='{
+            "name": "'"$RULE_NAME"'",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+              "ref_name": {
+                "include": ["refs/heads/main"],
+                "exclude": []
+              }
+            },
+            "rules": [
+              {
+                "type": "pull_request",
+                "parameters": {
+                  "dismiss_stale_reviews_on_push": true,
+                  "require_code_owner_review": true,
+                  "require_last_push_approval": false,
+                  "required_approving_review_count": 2,
+                  "required_review_thread_resolution": true
+                }
+              },
+              { "type": "non_fast_forward" }
+            ]
+          }'
+
+          RULE_ID=$(gh api repos/$GH_REPO/rulesets | jq -r ".[] | select(.name==\"$RULE_NAME\") | .id")
+          if [ -n "$RULE_ID" ]; then
+            echo "Updating $RULE_NAME (ID: $RULE_ID)"
+            echo "$PAYLOAD" | gh api --method PUT "/repos/$GH_REPO/rulesets/$RULE_ID" --input -
+          else
+            echo "Creating $RULE_NAME"
+            echo "$PAYLOAD" | gh api --method POST "/repos/$GH_REPO/rulesets" --input -
+          fi
+
+      - name: Create or update 'Develop' ruleset
+        run: |
+          RULE_NAME="Develop Branch Protection"
+          PAYLOAD='{
+            "name": "'"$RULE_NAME"'",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+              "ref_name": {
+                "include": ["refs/heads/develop"],
+                "exclude": []
+              }
+            },
+            "rules": [
+              {
+                "type": "pull_request",
+                "parameters": {
+                  "dismiss_stale_reviews_on_push": true,
+                  "require_code_owner_review": false,
+                  "require_last_push_approval": false,
+                  "required_approving_review_count": 1,
+                  "required_review_thread_resolution": false
+                }
+              },
+              { "type": "non_fast_forward" }
+            ]
+          }'
+
+          RULE_ID=$(gh api repos/$GH_REPO/rulesets | jq -r ".[] | select(.name==\"$RULE_NAME\") | .id")
+          if [ -n "$RULE_ID" ]; then
+            echo "Updating $RULE_NAME (ID: $RULE_ID)"
+            echo "$PAYLOAD" | gh api --method PUT "/repos/$GH_REPO/rulesets/$RULE_ID" --input -
+          else
+            echo "Creating $RULE_NAME"
+            echo "$PAYLOAD" | gh api --method POST "/repos/$GH_REPO/rulesets" --input -
+          fi
+
+      - name: Create or update 'Release/Hotfix' ruleset
+        run: |
+          RULE_NAME="Release and Hotfix Branch Protection"
+          PAYLOAD='{
+            "name": "'"$RULE_NAME"'",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+              "ref_name": {
+                "include": ["refs/heads/release/*", "refs/heads/hotfix/*"],
+                "exclude": []
+              }
+            },
+            "rules": [
+              {
+                "type": "pull_request",
+                "parameters": {
+                  "dismiss_stale_reviews_on_push": true,
+                  "require_code_owner_review": false,
+                  "require_last_push_approval": false,
+                  "required_approving_review_count": 1,
+                  "required_review_thread_resolution": false
+                }
+              },
+              { "type": "non_fast_forward" }
+            ]
+          }'
+
+          RULE_ID=$(gh api repos/$GH_REPO/rulesets | jq -r ".[] | select(.name==\"$RULE_NAME\") | .id")
+          if [ -n "$RULE_ID" ]; then
+            echo "Updating $RULE_NAME (ID: $RULE_ID)"
+            echo "$PAYLOAD" | gh api --method PUT "/repos/$GH_REPO/rulesets/$RULE_ID" --input -
+          else
+            echo "Creating $RULE_NAME"
+            echo "$PAYLOAD" | gh api --method POST "/repos/$GH_REPO/rulesets" --input -
+          fi
