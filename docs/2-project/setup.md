@@ -19,3 +19,7 @@ The effective folder structure:
 └── main.tf
 ```
 
+The following  is the reference arhitecture that we will be deploying with Terraform:
+
+![Screenshot of the AWS Architecture that we will build](../assets/architecture-diagram.png)
+
