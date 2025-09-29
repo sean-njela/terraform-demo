@@ -143,87 +143,11 @@ Atlantis is an automation tool that runs Terraform plans and applies through pul
     ```
 6. Atlantis applies the changes to the actual cloud infra.
 
-## Terraform Command Cheat Sheet
-
-### Initialisation and Setup
-
-```bash
-terraform init            # Initialise working directory, install providers, configure backend
-terraform init -upgrade   # Upgrade provider plugins
-terraform workspace list  # List workspaces
-terraform workspace new <name>  # Create new workspace
-terraform workspace select <name>  # Switch workspace
-```
-
-### Validation and Formatting
-
-```bash
-terraform fmt             # Auto-format .tf files
-terraform validate        # Validate syntax and internal consistency
-terraform providers       # List providers required by configuration
-```
-
-### Planning
-
-```bash
-terraform plan                          # Show execution plan
-terraform plan -out=tfplan              # Save plan to file
-terraform show tfplan                   # Show saved plan in human-readable form
-terraform show -json tfplan > plan.json # Output plan in JSON
-```
-
-### Applying
-
-```bash
-terraform apply                         # Apply with interactive approval
-terraform apply -auto-approve           # Apply without prompt
-terraform apply tfplan                  # Apply previously saved plan
-```
-
-### Destroying
-
-```bash
-terraform destroy                       # Destroy managed infrastructure
-terraform destroy -target=aws_instance.my_vm  # Destroy specific resource
-```
-
-### State Management
-
-```bash
-terraform state list                    # List resources in state
-terraform state show <resource>         # Show details of one resource
-terraform state rm <resource>           # Remove resource from state
-terraform state mv <src> <dst>          # Move resource in state
-terraform refresh                       # Sync state with real infrastructure
-```
-
-### Importing
-
-```bash
-terraform import <resource> <id>        # Import existing infra into state
-```
-
-### Output
-
-```bash
-terraform output                        # Show all outputs
-terraform output <name>                 # Show specific output
-terraform output -json                  # JSON output
-```
-
-### Graphing
-
-```bash
-terraform graph | dot -Tpng > graph.png # Generate dependency graph
-```
-
 ## **Pre-commit Hooks: Validate Before Push**
 
 ### What is a Pre-commit Hook?
 
 A **pre-commit hook** is a small script that runs **before you make a Git commit**. It catches issues early, before bad code gets committed or pushed.
-
-
 
 ### 👷 Use with Terraform
 
@@ -233,8 +157,6 @@ With Terraform, pre-commit hooks are often used to:
 - Validate syntax with `terraform validate`
 - Run security checks with `tflint`, `tfsec`, or `checkov`
 - Enforce best practices (like locking provider versions)
-
-
 
 ### 🔧 How To Set It Up
 
@@ -273,3 +195,87 @@ Now every time you run `git commit`, it will:
 - Auto-format your `.tf` files
 - Check syntax and linting
 - Block commits if anything fails
+
+## Core AWS Services
+
+There are services that get used in AWS. We will mainly focus on these as these cover teh majority of use cases in the cloud.
+
+- **VPC (Virtual Private Cloud)**: Creates a private network in the cloud, like a secure bubble for your servers and data, separate from the public internet.
+
+- **ALB (Application Load Balancer)**: Spreads incoming traffic across multiple servers to keep things running smoothly and avoid overload.
+
+- **Route53**: Manages domain names (like [www.yoursite.com]()) and directs internet traffic to the right place.
+
+- **EC2 (Elastic Compute Cloud)**: Provides virtual servers you can rent to run apps or store data, with options to scale up or down.
+
+- **ECS (Elastic Container Service)**: Helps manage and run Docker containers (lightweight app packages) on AWS, great for simpler setups.
+
+- **EKS (Elastic Kubernetes Service)**: Manages Kubernetes, a system for running and scaling containerized apps, ideal for complex setups.
+
+- **Lambda**: Runs code without needing a server, automatically scaling based on demand 
+(serverless computing).
+
+- **S3 (Simple Storage Service)**: Offers unlimited online storage for files like photos or backups, accessible anywhere.
+
+- **RDS (Relational Database Service)**: Manages databases (like MySQL or PostgreSQL) for storing and organizing data, with easy setup.
+
+- **CloudWatch**: Monitors your AWS resources, tracks performance, and sends alerts if something goes wrong.
+
+- **IAM (Identity and Access Management)**: Controls who can access your AWS services and what they can do, like a security guard.
+
+- **Fargate**: Runs containers without managing servers, simplifying container use with automatic scaling.
+
+- **EBS (Elastic Block Store)**: Provides persistent storage for EC2 instances, like a hard drive that stays even if the server restarts.
+
+- **ECR (Elastic Container Registry)**: A place to store and manage your Docker container images securely.
+
+- **DynamoDB**: A fast, flexible database for storing data in a table format, great for apps needing quick access.
+
+## ECS vs EKS vs Serverless
+
+### **Serverless Functions (AWS Lambda)**
+
+- **Model:** Event-driven functions. Upload code, AWS runs it.
+- **Use cases:** APIs, glue code, event processing, cron jobs, IoT.
+- **Scaling:** Instant per-invocation scaling.
+- **Control:** No OS access, no container management.
+- **Limits:** 15-minute max runtime, memory ≤ 10 GB, ephemeral filesystem only.
+- **Cost:** Pay per request and execution time (ms).
+- **Trade-offs:** Cold starts, runtime limits, vendor lock-in, no long-lived processes.
+
+### **Serverless Containers (ECS/EKS with Fargate)**
+
+- **Model:** User provides container image. AWS provisions compute.
+- **Use cases:** Microservices, APIs, batch jobs, workers, containers that need >15 min runtime.
+- **Scaling:** Per-task/pod automatic scaling.
+- **Control:** Control over container runtime, but no host-level access.
+- **Limits:** Only supported CPU/memory sizes, no privileged mode.
+- **Cost:** Pay per vCPU-second and GB-second allocated.
+- **Trade-offs:** More expensive than EC2 at scale, slower startup, less flexibility.
+
+### **Managed Containers (ECS/EKS on EC2)**
+
+- **Model:** User runs container clusters on EC2. AWS provides orchestration (ECS) or Kubernetes (EKS).
+- **Use cases:** Long-running services, GPU/ML workloads, custom networking, legacy apps.
+- **Scaling:** User-managed with Auto Scaling Groups (EC2) + orchestrator scaling rules.
+- **Control:** Full control of EC2 host, networking, daemon processes.
+- **Limits:** Need to patch, scale, and manage hosts.
+- **Cost:** Cheaper per unit compute for stable workloads.
+- **Trade-offs:** Higher ops burden.
+
+### **Virtual Machines (Raw EC2)**
+
+- **Model:** User provisions VMs directly. Full OS control.
+- **Use cases:** Legacy workloads, custom runtimes, monoliths, databases, stateful apps.
+- **Scaling:** Manual or via autoscaling groups.
+- **Control:** Complete, down to kernel and drivers.
+- **Limits:** Must manage everything (OS patching, monitoring, scaling, failures).
+- **Cost:** Pay for provisioned instance time, idle or not.
+- **Trade-offs:** High operational overhead.
+
+### **Summary**
+
+- **Lambda:** Small, event-driven code. Fastest to ship. Hard runtime limits.
+- **Fargate (ECS/EKS):** Container workloads without servers. Simplified ops. Costlier per unit.
+- **ECS/EKS on EC2:** Container workloads with host control. Best balance for steady workloads.
+- **EC2:** Full control. Most flexible. Heaviest ops burden.

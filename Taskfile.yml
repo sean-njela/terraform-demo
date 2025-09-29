@@ -71,6 +71,8 @@ tasks:
 
   setup:
     desc: "Setup environment: install dependencies, generate config etc."
+    cmds:
+      - pre-commit install
 
 
 # ─── Environment Management ────────────────────────────────────────────────────
@@ -79,7 +81,6 @@ tasks:
 
   prod:
     desc: "Provision and deploy to production"
-
 
 # ─── Misc ────────────────────────────────────────────────────
   info:
@@ -104,6 +105,24 @@ tasks:
     cmds:
       - ss -tunl
 
+# ─── Terraform ─────────────────────────────────────────────────────────
+  tf-fmt-dev:
+    desc: "Format the terraform configuration files"
+    dir: terraform/environments/dev
+    cmds:
+      - terraform fmt
+      - terraform validate
+      - tflint
+
+  tf-apply-dev:
+    desc: "Terraform apply in dev"
+    dir: terraform/envs/dev
+    cmds:
+      - task: tf-fmt-dev
+      - terraform workspace select dev
+      - terraform init
+      - terraform plan -out=tfplan -var-file=dev.tfvars
+      - terraform apply tfplan --auto-approve
 
 # ─── Documentation ─────────────────────────────────────────────────────────────
   docs:
@@ -116,9 +135,13 @@ tasks:
     cmds:
       - docker compose -f {{.DOCS_COMPOSE_FILE}} up
 
-
-
 # ─── Cleanup Tasks ─────────────────────────────────────────────────────────────
+  tf-destroy-dev:
+    desc: "Destroy Terraform resources"
+    dir: terraform/envs/dev
+    cmds:
+      - terraform destroy -var-file=dev.tfvars --auto-approve
+
   cleanup-zone:
     desc: "Cleans up all Zone.Identifier files"
     cmds:
