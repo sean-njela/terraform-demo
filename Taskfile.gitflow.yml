@@ -62,7 +62,7 @@ tasks:
           git reset --hard
           echo "# GitHub Pages" > README.md
           git add README.md
-          git commit -m "🧾 Initial commit for GitHub Pages branch"
+          git commit -m "🧾 Initial commit for GitHub Pages branch" --no-verify
           git push -u origin gh-pages
           git checkout {{.DEV_BRANCH}}  # Go back to working branch
           echo "✅ gh-pages branch initialized and pushed."
