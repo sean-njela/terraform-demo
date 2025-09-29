@@ -1,0 +1,35 @@
+########################################
+# Terraform-specific ignores
+########################################
+
+# Local .terraform directories
+.terraform/
+**/.terraform/*
+
+# State files
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Lock file (decide policy: keep or ignore)
+# Comment out if you want to commit lockfile for deterministic builds
+.terraform.lock.hcl
+
+# Auto-loaded variable files (secrets)
+*.auto.tfvars
+*.tfvars
+# Exception: keep immutable environment vars under version control
+!envs/**.tfvars
+
+# Provider config generated for tests
+**/provider.tf
+
+# Any log files
+*.log
+
+tfplan
+
+tfdestroy

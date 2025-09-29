@@ -40,8 +40,15 @@ Retrieves existing resources from the provider (e.g., latest AMI, existing VPC).
 
 Configures backend settings (e.g., for remote state storage with S3, GCS).
 
+### Resource vs Module 
 
-## Cheat Sheet
+When to use which:
+
+- If you want fine-grained control or need something not covered by a module → use provider resources directly from the AWS provider docs.
+
+- If you want faster, standardised setups (VPC, RDS, ECS, S3) → use the terraform-aws-modules modules, pinned to a version.
+
+## Terraform Cheat Sheet
 
 ### Provider
 
@@ -214,3 +221,77 @@ When changes are made to the module, push with a new version number. This can ge
 | **Secrets Management** | AWS Secrets Manager | Secures sensitive information used in configurations. |
 | **Policy Enforcement** | OPA (with Conftest) | Enforces compliance and governance policies on infrastructure changes. |
 | **Monitoring & Alerts** | Basic CloudWatch / Prometheus exporters | Monitors infrastructure health and performance. |
+
+## Terraform Command Cheat Sheet
+
+### Initialisation and Setup
+
+```bash
+terraform init            # Initialise working directory, install providers, configure backend
+terraform init -upgrade   # Upgrade provider plugins
+terraform workspace list  # List workspaces
+terraform workspace new <name>  # Create new workspace
+terraform workspace select <name>  # Switch workspace
+```
+
+### Validation and Formatting
+
+```bash
+terraform fmt             # Auto-format .tf files
+terraform validate        # Validate syntax and internal consistency
+terraform providers       # List providers required by configuration
+```
+
+### Planning
+
+```bash
+terraform plan                          # Show execution plan
+terraform plan -out=tfplan              # Save plan to file
+terraform show tfplan                   # Show saved plan in human-readable form
+terraform show -json tfplan > plan.json # Output plan in JSON
+```
+
+### Applying
+
+```bash
+terraform apply                         # Apply with interactive approval
+terraform apply -auto-approve           # Apply without prompt
+terraform apply tfplan                  # Apply previously saved plan
+```
+
+### Destroying
+
+```bash
+terraform destroy                       # Destroy managed infrastructure
+terraform destroy -target=aws_instance.my_vm  # Destroy specific resource
+```
+
+### State Management
+
+```bash
+terraform state list                    # List resources in state
+terraform state show <resource>         # Show details of one resource
+terraform state rm <resource>           # Remove resource from state
+terraform state mv <src> <dst>          # Move resource in state
+terraform refresh                       # Sync state with real infrastructure
+```
+
+### Importing
+
+```bash
+terraform import <resource> <id>        # Import existing infra into state
+```
+
+### Output
+
+```bash
+terraform output                        # Show all outputs
+terraform output <name>                 # Show specific output
+terraform output -json                  # JSON output
+```
+
+### Graphing
+
+```bash
+terraform graph | dot -Tpng > graph.png # Generate dependency graph
+```

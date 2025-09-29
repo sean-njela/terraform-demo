@@ -482,3 +482,95 @@ credentials.json
 
 # Any test logs
 **/**.log
+
+########################################
+# OS-specific files
+########################################
+
+# macOS
+._*                     # Resource forks on SMB shares
+.DS_Store               # Finder metadata
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+########################################
+# Editors and IDEs
+########################################
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Vim
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+
+# IntelliJ IDEA
+.idea/
+
+# VS Code
+.vscode/
+
+########################################
+# Python (if using tooling/scripts)
+########################################
+
+*.pyc
+__pycache__/
+
+########################################
+# Terraform
+########################################
+
+# Local .terraform directories (state cache)
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Lock file (regenerate per env in CI)
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Sensitive variable files (never commit secrets)
+*.auto.tfvars
+*.tfvars
+!terraform/envs/**.tfvars      # Exception: immutable env tfvars checked in
+
+# Ignore generated provider configs (for tests/dev only)
+**/provider.tf
+
+########################################
+# Test artefacts
+########################################
+
+test/fixtures/shared/terraform.tfvars
+test/integration/gcloud/config.sh
+test/integration/tmp
+**/**.log
+
+########################################
+# Secrets and credentials
+########################################
+
+credentials.json
+.env
+.envrc
+*.pem
+*.key
+*.crt
+
+
+tfplan
+
+tfdestroy

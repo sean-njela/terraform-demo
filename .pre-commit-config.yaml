@@ -28,7 +28,7 @@ repos:
         # Linter for Terraform code with module support enabled.
         # Uses a .tflint.hcl file for configuration (must be added to repo).
         args:
-          - --args=--module
+          - --args=--call-module-type=all
           - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
 
       # -----------------------------------------------------------------------
