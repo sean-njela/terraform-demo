@@ -5,7 +5,13 @@
     "go-task@3.44",
     "gitflow@1.12",
     "ffmpeg@7.1.1",
-    "uv@0.8"
+    "uv@0.8",
+    "terraform@1.13",
+    "go@1.25",
+    "tflint@0.58",
+    "infracost@0.10",
+    "trivy@0.66",
+    "pre-commit@4.3"
   ],
   "shell": {
     "init_hook": [

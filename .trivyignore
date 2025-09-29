@@ -1,0 +1,6 @@
+# .trivyignore
+# Purpose: Ignore specific Trivy IaC rules.
+# Example: ignore rule codes if justified in risk review.
+
+# Ignore a known false positive
+AVD-AWS-0137

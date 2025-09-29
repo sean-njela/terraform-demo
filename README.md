@@ -1,42 +1,40 @@
 <div align="center">
 
   <!-- Row of icons -->
-  <!--
+  
   <p>
-    <img src="https://logo.svgcdn.com/d/kubernetes-plain-wordmark.svg" alt="Kubernetes" height="95" />
+    <img src="https://logo.svgcdn.com/l/terraform.svg" alt="Terraform" height="40" />
     &nbsp;&nbsp;
-    <img src="https://logo.svgcdn.com/d/prometheus-plain-wordmark.svg" alt="Prometheus" height="90" />
+    <img src="https://logo.svgcdn.com/l/aws.svg" alt="AWS" height="40" />
     &nbsp;&nbsp;
-    <img src="https://logo.svgcdn.com/d/grafana-original-wordmark.svg" alt="Grafana" height="90" />
-    &nbsp;&nbsp;
-    <img src="https://logo.svgcdn.com/d/helm-original.svg" alt="Helm" height="90" />
+    <img src="https://logo.svgcdn.com/l/hashicorp.svg" alt="HashiCorp" height="40" />
   </p>
-  -->
+ 
 
-  <h1>Project Title</h1>
+  <h1>Terraform Infrastructure as Code Portfolio Project</h1>
 
   <p>
-    Brief description of the project. This can include what problem it solves, the tools or technologies it showcases, or what it aims to demonstrate.
+    Cloud Infrastructure Automation with Terraform: Modular, Secure, and Scalable Deployment
   </p>
 
   <p>
-    <a href="https://github.com/sean-njela/docs/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/sean-njela/docs" alt="contributors" />
+    <a href="https://github.com/sean-njela/terraform-demo/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/sean-njela/terraform-demo" alt="contributors" />
   </a>
   <a href="">
-    <img src="https://img.shields.io/github/last-commit/sean-njela/docs" alt="last update" />
+    <img src="https://img.shields.io/github/last-commit/sean-njela/terraform-demo" alt="last update" />
   </a>
-  <a href="https://github.com/sean-njela/docs/network/members">
-    <img src="https://img.shields.io/github/forks/sean-njela/docs" alt="forks" />
+  <a href="https://github.com/sean-njela/terraform-demo/network/members">
+    <img src="https://img.shields.io/github/forks/sean-njela/terraform-demo" alt="forks" />
   </a>
-  <a href="https://github.com/sean-njela/docs/stargazers">
-    <img src="https://img.shields.io/github/stars/sean-njela/docs" alt="stars" />
+  <a href="https://github.com/sean-njela/terraform-demo/stargazers">
+    <img src="https://img.shields.io/github/stars/sean-njela/terraform-demo" alt="stars" />
   </a>
-  <a href="https://github.com/sean-njela/docs/issues/">
-    <img src="https://img.shields.io/github/issues/sean-njela/docs" alt="open issues" />
+  <a href="https://github.com/sean-njela/terraform-demo/issues/">
+    <img src="https://img.shields.io/github/issues/sean-njela/terraform-demo" alt="open issues" />
   </a>
-  <a href="https://github.com/sean-njela/docs/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/sean-njela/docs.svg" alt="license" />
+  <a href="https://github.com/sean-njela/terraform-demo/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/sean-njela/terraform-demo.svg" alt="license" />
   </a>
   </p>
 </div>
@@ -57,10 +55,10 @@
 
 ## Screenshots
 
-<!-- <div align="center"> 
+<div align="center"> 
   <img src="assets/screenshot1.png" alt="screenshot1" />
   <img src="assets/screenshot2.png" alt="screenshot2" />
-</div> -->
+</div>
 
 <!-- 
 ## Demo
@@ -74,17 +72,18 @@
 ![▶ Watch a short demo](assets/demo-video-gif.gif)
 [![▶ Watch a short demo](assets/demo-video-gif.gif)](https://www.example.com/)
  -->
-
-[▶ Watch a short demo](assets/demo-video-small.mp4)
+<!-- 
+[▶ Watch a short demo](assets/demo-video-small.mp4) -->
 
 ## Tech Stack
 
 > List of tools used in the project
 
-![Devbox](https://img.shields.io/badge/Devbox-0.15.0-green)
+[![Devbox](https://www.jetify.com/img/devbox/shield_moon.svg)](https://www.jetify.com/devbox/docs/contributor-quickstart/)
 ![Taskfile](https://img.shields.io/badge/Taskfile-3.44.0-green)
 ![gitflow](https://img.shields.io/badge/gitflow-1.12-green)
 ![uv](https://img.shields.io/badge/uv-0.8-green)
+![precommit](https://img.shields.io/badge/precommit-4.3.0-green)
 
 ## Prerequisites
 
@@ -103,8 +102,8 @@
 2. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/your-repo.git
-   cd your-repo
+   git clone https://github.com/sean-njela/terraform-demo.git
+   cd terraform-demo
    ```
 
 3. **Start the Devbox Environment and poetry environment**
@@ -144,9 +143,10 @@ Docs are then available at: [http://127.0.0.1:8030/]()
 
 ## Features
 
-* Feature 1
-* Feature 2
-* Feature 3
+* Modular Terraform configuration for AWS
+* Automated local provisioning and teardown
+* Environment isolation (dev, staging, production)
+* Git workflow automation with Git Flow
 
 ## Tasks
 
@@ -182,18 +182,18 @@ If you do not want the gitflow tasks, you can remove the `Taskfile.gitflow.yml` 
 
 ## Troubleshooting
 
-For comprehensive troubleshooting, refer to the [Troubleshooting](docs/3-troubleshooting/overview.md) section. Or open the github pages [here](https://your-username.github.io/docs/3-troubleshooting/overview.md) and use the search bar to search your issue (USE INDIVIDUAL KEYWORDS NOT THE ISSUE NAME). 
+For comprehensive troubleshooting, refer to the [Troubleshooting](docs/3-troubleshooting/0-overview.md) section. Or open the github pages [here](https://sean-njela.github.io/terraform-demo/3-troubleshooting/0-overview.md) and use the search bar to search your issue (USE INDIVIDUAL KEYWORDS NOT THE ISSUE NAME). 
 
 ## Roadmap
 
-* [x] Feature A
-* [ ] Feature B
-* [ ] Feature C
+* [x] Core infrastructure setup
+* [ ] Extend CI/CD integration
+* [ ] Add monitoring and alerting modules
 
 ## Contributing
 
-<a href="https://github.com/your-username/your-repo/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=your-username/your-repo" />
+<a href="https://github.com/sean-njela/terraform-demo/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sean-njela/terraform-demo" />
 </a>
 
 > Contributions welcome! Open an issue or submit a PR.
@@ -204,10 +204,8 @@ Distributed under the MIT License. See `LICENSE` for more info.
 
 ## Contact
 
-Your Name – [@linkedin](https://linkedin.com/in/yourlinkedin) – [@twitter/x](https://x.com/yourtwitter) – [your.email@example.com](mailto:your.email@example.com)
+Your Name – [@linkedin](https://linkedin.com/in/sean-njela) – [@twitter/x](https://x.com/devopssean) – [seannjela@outlook.com](mailto:seannjela@outlook.com)
 
-Project Link: [https://github.com/your-username/your-repo](https://github.com/your-username/your-repo)
+Project Link: [https://github.com/sean-njela/terraform-demo](https://github.com/sean-njela/terraform-demo)
 
-About Me - [About Me](docs/4-about/about.md)
-
-
+About Me - [About Me](docs/4-about/0-about.md)

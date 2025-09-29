@@ -1,0 +1,76 @@
+# .pre-commit-config.yaml
+# Purpose: Enforce Terraform quality and security checks in both developer (fast, low-noise) 
+#          and CI/CD (strict, complete) workflows.
+# Design:  Split hooks into "always run locally" (fmt, validate, tflint) vs 
+#          "manual/CI only" (providers lock, security, cost, version checks).
+
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    # Pin to a stable release tag for deterministic behaviour
+    rev: v1.100.1
+    hooks:
+      # -----------------------------------------------------------------------
+      # FAST, LOW-NOISE HOOKS (RUN LOCALLY BY DEFAULT)
+      # -----------------------------------------------------------------------
+
+      - id: terraform_fmt
+        # Automatically formats Terraform files. 
+        # Low noise, fast, should always run on dev machines.
+
+      - id: terraform_validate
+        # Validates syntax and detects misconfigurations.
+        # Args:
+        #   --retry-once-with-cleanup: fixes corrupted .terraform dirs by retrying init.
+        args:
+          - --hook-config=--retry-once-with-cleanup=true
+
+      - id: terraform_tflint
+        # Linter for Terraform code with module support enabled.
+        # Uses a .tflint.hcl file for configuration (must be added to repo).
+        args:
+          - --args=--module
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+
+      # -----------------------------------------------------------------------
+      # STRICT, SLOWER, OR NOISIER HOOKS (RUN ONLY IN CI VIA --hook-stage manual)
+      # -----------------------------------------------------------------------
+
+      - id: terraform_providers_lock
+        # Ensures .terraform.lock.hcl is up-to-date.
+        # Very noisy locally because lockfiles change often, so run only in CI.
+        stages: [manual]
+        args:
+          - --hook-config=--mode=check
+
+      - id: terraform_checkov
+        # Security/compliance scanner with policy-as-code.
+        # Runs against Terraform files. Controlled by .checkov.yml config.
+        # Marked manual to avoid slowing down developers; enforced in CI.
+        stages: [manual]
+        args:
+          - --args=--config-file=__GIT_WORKING_DIR__/.checkov.yml
+
+      - id: terraform_trivy
+        # Trivy IaC scanning (detects vulnerabilities and misconfigurations).
+        # Skips .terraform dirs for performance. 
+        # "--quiet" reduces verbosity to avoid overwhelming logs.
+        stages: [manual]
+        args:
+          - --args=--skip-dirs="**/.terraform"
+          - --args=--quiet
+
+      - id: infracost_breakdown
+        # Shows cost diffs in PRs. Useful for prod/staging but noisy for dev.
+        # Configured via .infracost.yml. Run in CI only.
+        stages: [manual]
+        args:
+          - --args=--path=.
+          - --args=--config-file=__GIT_WORKING_DIR__/.infracost.yml
+
+      - id: tfupdate
+        # Detects outdated Terraform versions, providers, and modules.
+        # Runs in check-only mode. Should not auto-modify in prod.
+        # Run in CI only to avoid developer noise.
+        stages: [manual]
+        args:
+          - --args=--check

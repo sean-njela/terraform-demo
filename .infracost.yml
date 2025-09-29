@@ -1,0 +1,19 @@
+# .infracost.yml
+# Purpose: Define how Infracost estimates costs for Terraform.
+# Docs: https://www.infracost.io/docs/infracost_yaml/
+
+version: 0.1
+
+# Path to Terraform project(s)
+projects:
+  - path: .
+    name: default
+    terraform_var_files:
+      - prod.tfvars
+    terraform_workspace: prod
+
+# Set thresholds (fail if costs increase too much)
+checks:
+  # Example: fail if monthly costs increase by > 10%
+  cost:
+    thresholdPercent: 10

@@ -1,0 +1,22 @@
+# .checkov.yml
+# Purpose: Define which policies Checkov should apply.
+# Docs: https://www.checkov.io/3.Custom%20Policies/Config.html
+
+# Run only against Terraform files
+directory: .
+
+framework: terraform
+
+# Exclude test/dev directories if they are noisy
+skip-path:
+  - dev/
+  - examples/
+
+# Skip specific rules that are irrelevant to your environment
+# List of rules: https://www.checkov.io/5.Policy%20Index/
+skip-check:
+  - CKV_AWS_999 # Example: skip if using custom IAM approach
+  - CKV2_AWS_16 # Example: skip if not relevant
+
+# Fail pipeline if any critical severity is found
+soft-fail: false

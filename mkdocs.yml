@@ -1,10 +1,10 @@
-site_name: My Docs| Sean Njela
-site_description: Professional docs implementation.
-site_url: https://sean-njela.github.io/docs/
+site_name: My Terraform Portfolio Project Docs| Sean Njela
+site_description: Professional Terraform Portfolio Project docs.
+site_url: https://sean-njela.github.io/terraform-demo/
 site_author: Sean Njela
-repo_url: https://github.com/sean-njela/docs/
-repo_name: sean-njela/docs/
-edit_uri: edit/main/docs/
+repo_url: https://github.com/sean-njela/terraform-demo/
+repo_name: sean-njela/terraform-demo/
+edit_uri: edit/main/terraform-demo/
 copyright: Copyright &copy; 2025 Sean Njela - Personal Portfolio Project
 
 # Configuration
@@ -51,7 +51,7 @@ theme:
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: blue grey
       accent: indigo
       toggle:
         icon: material/toggle-switch
@@ -64,8 +64,8 @@ theme:
         icon: material/toggle-switch-off
         name: Switch to system preference
   font:
-    text: Roboto
-    code: Roboto Mono
+    text: "Roboto"
+    code: "Roboto Mono"
 
 plugins:
   - search:
@@ -152,9 +152,9 @@ nav:
       - System Overview: 1-architecture/0-overview.md
   - MyProject: # This becomes the main docs for whatever you are building
       - uv Package Manager: 2-project/uv-notes.md
-      - Project Topic 1: 2-project/0-topic1.md
-      - Project Topic 2: 2-project/1-topic2.md
-      - Project Topic 3: 2-project/2-topic3.md
+      - Terraform: 2-project/terraform.md
+      - General Notes: 2-project/notes.md
+      - Setup: 2-project/setup.md
       # etc.
   - Tasks:
       - Tasks: 2-project/tasks/0-overview.md
