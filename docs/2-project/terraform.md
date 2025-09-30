@@ -48,6 +48,139 @@ When to use which:
 
 - If you want faster, standardised setups (VPC, RDS, ECS, S3) → use the terraform-aws-modules modules, pinned to a version.
 
+### Data Types
+
+Terraform supports several variable types. Below is a complete list with examples.
+
+#### **Primitive Types**
+
+- **string**
+   Text values.
+
+   ```hcl
+   variable "instance_type" {
+     type    = string
+     default = "t2.micro"
+   }
+   ```
+
+- **number**
+   Integers or floats.
+
+   ```hcl
+   variable "instance_count" {
+     type    = number
+     default = 3
+   }
+   ```
+
+- **bool**
+   Boolean values (`true` or `false`).
+
+   ```hcl
+   variable "enable_monitoring" {
+     type    = bool
+     default = true
+   }
+   ```
+
+#### **Collection Types**
+
+- **list(<TYPE>)**
+   Ordered sequence of values of the same type.
+
+   ```hcl
+   variable "availability_zones" {
+     type    = list(string)
+     default = ["us-east-1a", "us-east-1b"]
+   }
+   ```
+
+- **set(<TYPE>)**
+   Unordered collection of unique values of the same type.
+
+   ```hcl
+   variable "security_groups" {
+     type    = set(string)
+     default = ["sg-12345", "sg-67890"]
+   }
+   ```
+
+- **map(<TYPE>)**
+   Key-value pairs with keys as strings and values of the same type.
+
+   ```hcl
+   variable "tags" {
+     type = map(string)
+     default = {
+       Environment = "dev"
+       Owner       = "team-a"
+     }
+   }
+   ```
+
+#### **Structural Types**
+
+- **object({...})**
+   Group of named attributes, each with its own type.
+
+   ```hcl
+   variable "server_config" {
+     type = object({
+       name     = string
+       cpu      = number
+       memory   = number
+       priority = bool
+     })
+     default = {
+       name     = "webserver"
+       cpu      = 2
+       memory   = 4096
+       priority = true
+     }
+   }
+   ```
+
+- **tuple([...])**
+   Sequence of elements where each position can have a different type.
+
+   ```hcl
+   variable "db_info" {
+     type = tuple([string, number, bool])
+     default = ["mysql", 3306, true]
+   }
+   ```
+
+#### **Special Types**
+
+- **any**
+   Accepts any type. Not recommended for strict validation.
+
+   ```hcl
+   variable "raw_input" {
+     type = any
+   }
+   ```
+
+Terraform variable names must use **letters, digits, and underscores** only.
+
+* Valid:
+
+  ```hcl
+  variable "instance_type" {}
+  variable "db_user1" {}
+  variable "enable_logging" {}
+  ```
+
+* Invalid (will cause an error):
+
+  ```hcl
+  variable "instance-type" {}   # hyphens not allowed
+  variable "db-user" {}
+  ```
+
+Hyphens (`-`) are only allowed in the values or **resource names**, not in variable identifiers.
+
 ## Terraform Cheat Sheet
 
 ### Provider
@@ -205,7 +338,7 @@ When changes are made to the module, push with a new version number. This can ge
 
 | Layer | Tool/Component | Purpose |
 | --- | --- | --- |
-| **Local Backend** | `local` backend | Stores Terraform state files locally for isolated development. |
+| **Local Backend** | `terraform cloud` backend | Stores Terraform state files for isolated development. |
 | **Workspaces** | Terraform Workspaces | Manages multiple environments (e.g., dev, test) within the same config. |
 | **Mock Providers** | LocalStack, Docker | Simulates cloud services locally for testing without incurring costs. |
 | **Testing Framework** | Terratest or `terraform plan` in CI | Facilitates automated testing of Terraform modules and configurations. |

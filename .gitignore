@@ -461,9 +461,6 @@ Session.vim
 *.tfstate
 *.tfstate.*
 
-# tf lock file
-.terraform.lock.hcl
-
 # Crash log files
 crash.log
 
@@ -534,9 +531,6 @@ __pycache__/
 # Terraform state files
 *.tfstate
 *.tfstate.*
-
-# Lock file (regenerate per env in CI)
-.terraform.lock.hcl
 
 # Crash log files
 crash.log
