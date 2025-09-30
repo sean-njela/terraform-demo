@@ -14,10 +14,6 @@
 crash.log
 crash.*.log
 
-# Lock file (decide policy: keep or ignore)
-# Comment out if you want to commit lockfile for deterministic builds
-.terraform.lock.hcl
-
 # Auto-loaded variable files (secrets)
 *.auto.tfvars
 *.tfvars

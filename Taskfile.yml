@@ -78,6 +78,8 @@ tasks:
 # ─── Environment Management ────────────────────────────────────────────────────
   dev:
     desc: "Provision and start local development environment"
+    cmds:
+      - task: tf-apply-dev
 
   prod:
     desc: "Provision and deploy to production"
@@ -108,21 +110,62 @@ tasks:
 # ─── Terraform ─────────────────────────────────────────────────────────
   tf-fmt-dev:
     desc: "Format the terraform configuration files"
-    dir: terraform/environments/dev
+    dir: terraform/envs/dev
     cmds:
+      - terraform init
       - terraform fmt
       - terraform validate
       - tflint
+
+  tf-fmt-bootstrap:
+    desc: "Format the terraform configuration files"
+    dir: terraform/envs/prod/bootstrap
+    cmds:
+      - terraform init
+      - terraform fmt
+      - terraform validate
+      - tflint
+
+  tf-fmt-prod:
+    desc: "Format the terraform configuration files"
+    dir: terraform/envs/prod
+    cmds:
+      - terraform init
+      - terraform fmt
+      - terraform validate
+      - tflint
+
+
 
   tf-apply-dev:
     desc: "Terraform apply in dev"
     dir: terraform/envs/dev
     cmds:
       - task: tf-fmt-dev
-      - terraform workspace select dev
       - terraform init
+      - terraform workspace select dev
       - terraform plan -out=tfplan -var-file=dev.tfvars
-      - terraform apply tfplan --auto-approve
+      - terraform apply --auto-approve tfplan
+
+  tf-apply-bootstrap:
+    desc: "Terraform apply in dev"
+    dir: terraform/envs/prod/bootstrap
+    cmds:
+      - task: tf-fmt-bootstrap
+      - terraform init
+      - terraform workspace select bootstrap
+      - terraform plan -out=tfplan -var-file=bootstrap.tfvars
+      - terraform apply --auto-approve tfplan
+
+  tf-apply-prod:
+    desc: "Terraform apply in dev"
+    dir: terraform/envs/prod
+    cmds:
+      - task: tf-fmt-prod
+      - terraform init
+      # - terraform workspace select prod
+      - terraform plan -out=tfplan -var-file=prod.tfvars
+      - terraform apply --auto-approve tfplan
 
 # ─── Documentation ─────────────────────────────────────────────────────────────
   docs:
@@ -141,6 +184,25 @@ tasks:
     dir: terraform/envs/dev
     cmds:
       - terraform destroy -var-file=dev.tfvars --auto-approve
+
+  tf-destroy-bootstrap:
+    desc: "Destroy Terraform resources"
+    dir: terraform/envs/prod/bootstrap
+    cmds:
+      - terraform destroy -var-file=bootstrap.tfvars --auto-approve
+
+  tf-destroy-prod:
+    desc: "Destroy Terraform resources"
+    dir: terraform/envs/prod
+    cmds:
+      - terraform destroy -var-file=prod.tfvars --auto-approve
+
+  tf-destroy-all:
+    desc: "Destroy all environments"
+    cmds:
+      - task: tf-destroy-dev || echo "Error destroying dev"
+      - task: tf-destroy-prod || echo "Error destroying prod"
+      - task: tf-destroy-bootstrap || echo "Error destroying bootstrap"
 
   cleanup-zone:
     desc: "Cleans up all Zone.Identifier files"

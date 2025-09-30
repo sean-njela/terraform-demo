@@ -586,7 +586,38 @@ We use Terraform Cloud → AWS OIDC dynamic credentials. Steps:
 2. Workspace Run → this is the correct option for standard Terraform Cloud workspaces.3. Attach these permissions policy for the AWS resources Terraform must manage. (For prod attach stricter policies):
 ![Screenshot of attached AWS Policies](../assets/aws-policies.png)
 
-This restricts the token to the exact organisation, project, and workspace. Use `run_phase => *` if one role is shared by plan and apply. Create two roles if plan and apply need different permissions and set `run_phase -> plan` or `run_phase => apply`.
+This restricts the token to the exact organisation, project, and workspaces(dev, bootstrap, staging, prod => this is very importatnt). Use `run_phase => *` if one role is shared by plan and apply. Create two roles if plan and apply need different permissions and set `run_phase -> plan` or `run_phase => apply`.
+
+example trusted entities entry:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::xxxxx"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "app.terraform.io:aud": "aws.workload.identity"
+        },
+        "StringLike": {
+          "app.terraform.io:sub": [
+            "organization:devopssean:project:tf-demo:workspace:dev:run_phase:*",
+            "organization:devopssean:project:tf-demo:workspace:bootstrap:run_phase:*",
+            "organization:devopssean:project:tf-demo:workspace:prod:run_phase:*",
+            "organization:devopssean:project:tf-demo:workspace:staging:run_phase:*"
+          ]
+        }
+      }
+    }
+  ]
+}
+
+```
 
 ### Add variables in the Terraform Cloud workspace
 
@@ -597,6 +628,9 @@ This restricts the token to the exact organisation, project, and workspace. Use 
    * Optionally `AWS_REGION=<region>` if not set in the provider block.
    * Optionally `TFC_AWS_PLAN_ROLE_ARN` and `TFC_AWS_APPLY_ROLE_ARN` if using separate roles.
 2. Use a Variable Set if multiple workspaces share the role.
+
+!!! warning
+    DOUBLE CHECK AND TRIPPLE CHECK that the variables are of Category Environment and NOT terraform.
 
 ### Keep the provider block minimal in each environment
 
@@ -656,3 +690,160 @@ We then destroy the infrastructure:
 task tf-destroy-dev
 ```
 
+!!! info
+    To select an AMI whilst using a ac2_instance module, search for an AMI string value on https://cloud-images.ubuntu.com/locator/ec2/ and then replace that in the `ami` variable.
+
+For the backend in development we will be using terraform cloud (free for up to 5 users). In production we will be using S3 with Dynamo DB.
+
+Dynamo DB has state locking which prevents concurrent apply commands being executed at the same time.
+
+In dev:
+Check the setup above
+![Screenshot of Terraform Cloud setup](../assets/tf-cloud-setup.png)
+
+In prod:
+We first bootstrap the bucket and Dynamo DB table through Terraform then we continue with our normal setup. The provisioning files are in the `terraform/envs/prod/bootstrap` directory.
+![Screenshot of S3 + DynamoDB setup](../assets/s3-db-setup.png)
+![Screenshot of S3 + DynamoDB setup](../assets/s3-db-setup2.png)
+
+Another way is to make use of the `terraform-aws-modules/vpc/aws` module.
+This is the solution that we employed in this project.
+
+We have to setup the bootstrap workspace in the terraform cloud as we did for [dev](https://sean-njela.github.io/terraform-demo/0.1.1/2-project/setup/#add-variables-in-the-terraform-cloud-workspace)
+
+Then:
+
+```sh
+terraform login # to provide token for 
+task tf-apply-bootstrap
+```
+
+This creates the state bucket and DynamoDB locking table, along with anything else you have defined in the *.tf file(s). At this point, the Terraform state is still stored locally.
+
+Module terraform_state_backend also creates a new `prod-backend.tf` file (the name can be changed in the variables) that defines the S3+DB state backend.
+
+!!! info
+    When running the **bootstrap** in Terraform Cloud, the `local_file` resource from `cloudposse/tfstate-backend` cannot persist files back into your Git repository. This is why you do not see a `backend.tf` file after a successful apply. Instead of relying on `local_file`, you should expose the S3 bucket, DynamoDB table, and region as **outputs**. After the bootstrap run, Terraform Cloud will print these outputs. You can then copy the generated backend snippet into a versioned `backend.tf` file in your repo.
+
+We use that configuration for our production `backend.tf` file.
+
+```sh
+terraform init --reconfigure # in prod/ directory
+
+# OR IF AND ONLY IF YOU RAN USING LOCAL BACKEND
+terraform init --force-copy # Terraform detects that you want to move your state to the S3 backend, and it does so per -auto-approve.
+```
+
+Now the state is stored in the S3 bucket, and the DynamoDB table will be used to lock the state to prevent concurrent modification. This concludes the one-time preparation. Now we can extend and modify our Terraform configuration as usual.
+
+Here’s a finalised version of your MkDocs note with tightened structure, consistent formatting, and no ambiguity:
+
+
+### Destroying bootstrap
+
+!!! warning "Important"
+    Please read this section in full before implementing.
+
+In this setup:
+
+* **Bootstrap** runs in **Terraform Cloud** (remote backend).
+* Bootstrap provisions an **S3 bucket** (`devopssean-prod-terraform-state`) and a **DynamoDB table** (`devopssean-prod-terraform-state-lock`).
+* Other environments (`prod`, `staging`, `dev`) are configured to use those backend resources.
+
+If you want to **destroy bootstrap** and clean up, follow these steps.
+
+1. **Check dependencies**
+
+   * Confirm that no environments (`prod`, `staging`, `dev`) are still using the bootstrap S3 bucket and DynamoDB table.
+   * If they are, migrate them to **Terraform Cloud** first. Otherwise they will break.
+
+#### Migration procedure
+
+   **Step 1 – Create Terraform Cloud workspaces**
+
+   * In Terraform Cloud, create a separate workspace for each environment (`prod`, `staging`, `dev`).
+   * Point each workspace to the corresponding environment folder in your repository.
+   * Add AWS credentials or an OIDC role in workspace variables so Terraform Cloud can deploy infrastructure.
+
+   **Step 2 – Update backend configuration**
+
+   Replace the S3 backend in each environment’s `backend.tf` with a Terraform Cloud block:
+
+  ```hcl
+   terraform {
+     cloud {
+       organization = "devopssean"
+
+       workspaces {
+         name = "prod"   # or staging/dev as appropriate
+       }
+     }
+   }
+  ```
+
+Remove the old `backend "s3"` block entirely.
+
+**Step 3 – Re-initialise with migration**
+
+In each environment folder:
+
+```sh
+terraform init --migrate-state
+```
+
+Terraform will:
+
+* Detect the backend change (S3 → Terraform Cloud).
+* Prompt to migrate state.
+* Move `.tfstate` from S3 into Terraform Cloud.
+
+For automation, use:
+
+```sh
+terraform init --migrate-state --force-copy
+```
+
+**Step 4 – Validate**
+
+* In Terraform Cloud, check that each workspace now shows existing resources.
+* Run `terraform plan` to confirm there is no drift.
+
+**Step 5 – Destroy bootstrap**
+
+Once all environments are migrated:
+
+```sh
+cd envs/prod/bootstrap
+task tf-destroy-bootstrap
+```
+
+This deletes the S3 bucket, DynamoDB table, and any other bootstrap resources.
+
+**Risks if skipped**
+
+* If you destroy bootstrap first, the S3 bucket and DynamoDB table are lost.
+  Then `terraform init --migrate-state` cannot read the old state, and environments will behave as if they are fresh deployments (risk of duplicate resources).
+
+2. **Go to bootstrap folder**
+
+   ```sh
+   cd envs/prod/bootstrap
+   ```
+
+3. **Destroy bootstrap resources**
+
+   ```sh
+   task tf-destroy-bootstrap
+   ```
+
+   This removes the backend bucket, DynamoDB table, and all other bootstrap resources.
+
+4. **Verify state**
+
+   * Bootstrap workspace in Terraform Cloud should show `0` resources.
+   * S3 should no longer have a bucket named `devopssean-prod-terraform-state`.
+   * DynamoDB should no longer have a table named `devopssean-prod-terraform-state-lock`.
+
+!!! warning "Important"
+    After this, any `prod`, `staging`, or `dev` environment still pointing to the old backend will fail.
+    Always migrate them to Terraform Cloud before destroying bootstrap.
