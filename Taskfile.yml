@@ -83,6 +83,9 @@ tasks:
 
   prod:
     desc: "Provision and deploy to production"
+    cmds:
+      - task: tf-apply-bootstrap
+      - task: tf-apply-prod
 
 # ─── Misc ────────────────────────────────────────────────────
   info:
@@ -108,6 +111,7 @@ tasks:
       - ss -tunl
 
 # ─── Terraform ─────────────────────────────────────────────────────────
+# Format
   tf-fmt-dev:
     desc: "Format the terraform configuration files"
     dir: terraform/envs/dev
@@ -135,8 +139,7 @@ tasks:
       - terraform validate
       - tflint
 
-
-
+# Apply
   tf-apply-dev:
     desc: "Terraform apply in dev"
     dir: terraform/envs/dev
@@ -200,9 +203,9 @@ tasks:
   tf-destroy-all:
     desc: "Destroy all environments"
     cmds:
-      - task: tf-destroy-dev || echo "Error destroying dev"
-      - task: tf-destroy-prod || echo "Error destroying prod"
-      - task: tf-destroy-bootstrap || echo "Error destroying bootstrap"
+      - task: tf-destroy-dev
+      - task: tf-destroy-prod
+      - task: tf-destroy-bootstrap
 
   cleanup-zone:
     desc: "Cleans up all Zone.Identifier files"
@@ -223,8 +226,6 @@ tasks:
       - task: cleanup-dev
       - task: cleanup-prod
       - task: cleanup-zone
-
-
 
 # ─── Assets and Compression ────────────────────────────────────────────────────
   mkdir-assets:
