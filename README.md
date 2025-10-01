@@ -38,11 +38,15 @@
 
 ## Screenshots
 
-<div align="center">
-  <img src="assets/screenshot1.png" alt="screenshot1" width="800" />
-  <img src="assets/screenshot2.png" alt="screenshot2" width="800" />
-  <img src="assets/screenshot3.png" alt="screenshot3" width="800" />
-</div>
+<details>
+  <summary>Click to expand</summary>
+  <!-- Example (uncomment if needed) -->
+  <div align="center"> 
+    <img src="assets/screenshot1.png" alt="screenshot1" width="800" />
+    <img src="assets/screenshot2.png" alt="screenshot2" width="800" />
+    <img src="assets/screenshot3.png" alt="screenshot3" width="800" />
+  </div>
+</details>
 
 ## Tech Stack
 
