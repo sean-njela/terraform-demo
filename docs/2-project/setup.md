@@ -847,4 +847,3 @@ This deletes the S3 bucket, DynamoDB table, and any other bootstrap resources.
 !!! warning "Important"
     After this, any `prod`, `staging`, or `dev` environment still pointing to the old backend will fail.
     Always migrate them to Terraform Cloud before destroying bootstrap.
-
