@@ -111,7 +111,7 @@ tasks:
       - ss -tunl
 
 # ─── Terraform ─────────────────────────────────────────────────────────
-# Format
+  # Format
   tf-fmt-dev:
     desc: "Format the terraform configuration files"
     dir: terraform/envs/dev
@@ -139,7 +139,7 @@ tasks:
       - terraform validate
       - tflint
 
-# Apply
+  # Apply
   tf-apply-dev:
     desc: "Terraform apply in dev"
     dir: terraform/envs/dev

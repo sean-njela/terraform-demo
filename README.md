@@ -60,7 +60,6 @@
 * Modular Terraform configuration for AWS
 * Automated provisioning and teardown
 * Environment isolation (dev, staging, production)
-* Git workflow automation with Git Flow
 
 ## Prerequisites
 
@@ -132,8 +131,8 @@ If you do not want the gitflow tasks, you can remove the `Taskfile.gitflow.yml` 
 ## Roadmap
 
 * [x] Core infrastructure setup
-* [ ] Extend CI/CD integration
-* [ ] Add monitoring and alerting modules
+* [x] Add Precommit
+* [ ] Add Terragrunt
 
 ## Contributing
 

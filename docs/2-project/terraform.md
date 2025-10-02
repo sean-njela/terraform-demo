@@ -1040,3 +1040,229 @@ atlantis unlock                # unlock stuck project
 * Logs live in Atlantis server container/VM.
 * Failed applies often caused by missing credentials or state lock.
 * Use `--log-level debug` when running Atlantis for troubleshooting.
+
+## Terraform with Kubernetes and HELM
+
+### Local setup
+
+#### Example: Terraform + kind
+
+Providers needed:
+
+* kind provider
+* kubernetes provider (to interact with the cluster)
+* helm provider (to manage Helm charts)
+* kubectl provider (only if raw YAML manifests are required)
+
+```hcl
+terraform {
+  required_providers {
+    kind = {
+      source  = "tehcyx/kind"
+      version = "0.20.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.22.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.12.1"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }
+  }
+}
+
+provider "kind" {}
+
+provider "kubernetes" {
+  config_path = kind_cluster.local.kubeconfig_path
+}
+
+provider "helm" {
+  kubernetes {
+    config_path = kind_cluster.local.kubeconfig_path
+  }
+}
+
+resource "kind_cluster" "local" {
+  name           = "local-cluster"
+  wait_for_ready = true
+}
+
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = "5.46.8"
+  namespace        = "argocd"
+  create_namespace = true
+  timeout          = 600
+  replace          = true
+  values           = [file("values/argocd-values.yaml")]
+}
+```
+
+Notes:
+
+* `kind_cluster.local.kubeconfig_path` exposes kubeconfig.
+* `helm_release` installs the Nginx chart.
+* Local clusters are ephemeral and not production-grade.
+* `kubectl` provider is optional; use only if applying raw YAML manifests.
+
+### In the Cloud
+
+AWS EKS (Elastic Kubernetes Service):
+
+- Managed control plane.
+- Worker nodes via EC2 or Fargate.
+- Complex IAM and networking.
+
+GCP GKE (Google Kubernetes Engine):
+
+- Fully managed.
+- Strong integration with GCP networking and IAM.
+
+Azure AKS (Azure Kubernetes Service)
+
+- Similar to GKE.
+- Integrates with AAD.
+
+#### AWS EKS Example with Terraform
+
+Providers needed:
+
+* aws
+* kubernetes
+* helm
+* kubectl
+
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.29.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.22.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.12.1"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }
+  }
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+  depends_on = [module.eks]
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
+  depends_on = [module.eks]
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
+
+provider "kubectl" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+  load_config_file       = false
+}
+
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  cluster_name    = "prod-cluster"
+  cluster_version = "1.29"
+  subnets         = ["subnet-xxxx", "subnet-yyyy"]
+  vpc_id          = "vpc-xxxx"
+
+  node_groups = {
+    default = {
+      desired_capacity = 2
+      max_capacity     = 4
+      min_capacity     = 1
+      instance_types   = ["t3.medium"]
+    }
+  }
+}
+
+resource "helm_release" "nginx" {
+  name       = "nginx"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "nginx"
+}
+```
+
+Notes:
+
+* `depends_on` ensures cluster is created before authentication data is fetched.
+* Real EKS deployments require VPC, IAM roles, OIDC provider, and networking to be fully configured.
+* Security groups and IAM for service accounts (IRSA) must be designed carefully.
+
+### Terraform + Helm Workflow
+
+* Write Terraform configuration.
+* Run `terraform init`.
+* Run `terraform plan` to preview.
+* Run `terraform apply` to provision cluster.
+* Terraform provisions cluster and installs Helm charts.
+* Manage upgrades with `terraform apply`.
+
+### Advantages
+
+* Single Infrastructure as Code workflow for infrastructure and applications.
+* Reproducibility: cluster and workloads are codified.
+* Automates bootstrap (ingress, monitoring, CNI, logging).
+* Works for both local and cloud environments.
+
+### Disadvantages / Risks
+
+* State management risk: state file must be secured and stored remotely.
+* Complexity in cloud: networking, IAM, VPCs, and OIDC integrations.
+* Drift: manual changes in the cluster are not tracked by Terraform.
+* Provider lag: Helm and Kubernetes providers may not match upstream API changes.
+* State bloat: Helm releases increase state file size.
+* Lifecycle coupling: destroying a cluster also destroys workloads.
+
+### Best Practices
+
+* Store state in a secure remote backend with locking (S3 + DynamoDB, GCS, Azure Blob).
+* Encrypt state with KMS or equivalent.
+* Use official Terraform modules (EKS, GKE, AKS) for reliability.
+* Separate infrastructure and workloads:
+
+  * One workspace for cluster infrastructure.
+  * One workspace for Helm charts.
+* Use provider version pinning.
+* Use `lifecycle { ignore_changes = [...] }` for Helm values likely to drift.
+* Apply GitOps for Helm releases beyond initial bootstrap (e.g. ArgoCD, Flux).
+* Use least privilege IAM for Terraform execution role.
+* Use separate state backends or workspaces per environment (dev, staging, prod).
